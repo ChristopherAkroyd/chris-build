@@ -6,7 +6,7 @@ const sequence = require('gulp-sequence');
 
 const getTasks = require('./src/util/getTasks.js');
 
-const TASKS_PATH = path.resolve('./tasks');
+const TASKS_PATH = path.resolve('src/tasks');
 const taskList = [];
 
 function loadTasks(tasks, gulpConfig) {
@@ -26,9 +26,15 @@ function loadTasks(tasks, gulpConfig) {
 }
 
 function loadBuild(gulpConfig) {
-  const tasks = getTasks(TASKS_PATH);
-  loadTasks(tasks, gulpConfig);
+  console.log(path.join(__dirname, TASKS_PATH));
+
+  getTasks(TASKS_PATH).then((tasks) => {
+    loadTasks(tasks, gulpConfig);
+    gulp.task('default', sequence(taskList));
+  });
   gulp.task('default', sequence(taskList));
 }
+
+loadBuild();
 
 module.exports = loadBuild;
