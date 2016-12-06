@@ -3,6 +3,7 @@ const gUtil = require('gulp-util');
 const browserify = require('browserify');
 const sassify = require('sassify');
 const source = require('vinyl-source-stream');
+const path = require('path');
 const watchify = require('watchify');
 
 const BROWSERIFY_TASK_NAME = 'build.browserify';
@@ -30,7 +31,7 @@ function bundleTask(bundleDef, opts) {
 function buildBrowserify(opts) {
   const bundle = browserify({
     debug: opts.debug,
-    entries: opts.build.browserifyEntry,
+    entries: path.join(process.cwd(), opts.build.browserify),
     extensions: ['.jsx', '.js'],
     cache: {},
     packageCache: {},
@@ -45,7 +46,7 @@ function buildBrowserify(opts) {
     this.emit('end');
   });
   bundle.on('update', () => bundleTask(bundle, opts));
-  return bundleTask(bundle);
+  return bundleTask(bundle, opts);
 }
 
 function task(opts) {
