@@ -5,10 +5,32 @@ const sassify = require('sassify');
 const source = require('vinyl-source-stream');
 const watchify = require('watchify');
 
+const BROWSERIFY_TASK_NAME = 'build.browserify';
+
+function babelifyTransform(bundleDef) {
+  bundleDef.transform('babelify', { presets: ['es2015', 'react'] });
+}
+
+function sassifyTransform(bundleDef) {
+  bundleDef.transform(sassify, {
+    'auto-inject': true,
+    base64Encode: false,
+    sourceMap: true,
+  });
+}
+
+function bundleTask(bundleDef, opts) {
+  const bundle = bundleDef.bundle();
+  gUtil.log('Building ...');
+  return bundle.pipe(source('bundle.js'))
+    .pipe(gulp.dest(opts.dist))
+    .pipe(opts.connect.reload());
+}
+
 function buildBrowserify(opts) {
   const bundle = browserify({
     debug: opts.debug,
-    entries: opts.src,
+    entries: opts.build.browserifyEntry,
     extensions: ['.jsx', '.js'],
     cache: {},
     packageCache: {},
@@ -16,30 +38,18 @@ function buildBrowserify(opts) {
     plugin: [watchify],
   });
 
-  function rebundle() {
-    const bundleTask = bundle.bundle();
-    bundleTask.on('error', (error) => {
-      gUtil.log(error);
-      this.emit('end');
-    });
-    gUtil.log('Building ...');
-    return bundleTask.pipe(source('bundle.js'))
-      .pipe(gulp.dest(opts.dist))
-      .pipe(opts.connect.reload());
-  }
-
-  bundle.transform('babelify', { presets: ['es2015', 'react'] });
-  bundle.transform(sassify, {
-    'auto-inject': true,
-    base64Encode: false,
-    sourceMap: true,
+  babelifyTransform(bundle);
+  sassifyTransform(bundle);
+  bundle.on('error', (error) => {
+    gUtil.log(error);
+    this.emit('end');
   });
-  bundle.on('update', rebundle);
-  return rebundle();
+  bundle.on('update', () => bundleTask(bundle, opts));
+  return bundleTask(bundle);
 }
 
-module.exports = {
-  taskName: 'build.browserify',
-  task: buildBrowserify,
-  srcKey: 'build.browserifyEntry',
-};
+function task(opts) {
+  gulp.task(BROWSERIFY_TASK_NAME, () => buildBrowserify(opts));
+}
+
+module.exports = { name: BROWSERIFY_TASK_NAME, task };

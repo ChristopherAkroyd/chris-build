@@ -1,3 +1,7 @@
+const gulp = require('gulp');
+
+const CONNECT_TASK_NAME = 'connect';
+
 function connect(opts) {
   return opts.connect.server({
     root: opts.dist,
@@ -6,7 +10,8 @@ function connect(opts) {
   });
 }
 
-module.exports = {
-  taskName: 'connect',
-  task: connect,
-};
+function task(opts) {
+  gulp.task(CONNECT_TASK_NAME, () => connect(opts));
+}
+
+module.exports = { name: CONNECT_TASK_NAME, task };

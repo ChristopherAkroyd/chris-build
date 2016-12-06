@@ -1,13 +1,14 @@
 const gulp = require('gulp');
 
+const BUILD_IMAGES_TASK_NAME = 'build.images';
+
 function buildImages(opts) {
-  return gulp.src(opts.src)
+  return gulp.src(opts.build.images)
     .pipe(gulp.dest(opts.dist));
 }
 
-module.exports = {
-  taskName: 'build.images',
-  task: buildImages,
-  watch: true,
-  srcKey: 'build.images',
-};
+function task(opts) {
+  gulp.task(BUILD_IMAGES_TASK_NAME, () => buildImages(opts));
+}
+
+module.exports = { name: BUILD_IMAGES_TASK_NAME, task };

@@ -1,40 +1,27 @@
 const gulp = require('gulp');
 const connect = require('gulp-connect');
-const lGet = require('lodash.get');
-const path = require('path');
 const sequence = require('gulp-sequence');
 
-const getTasks = require('./src/util/getTasks.js');
+const html = require('./src/tasks/html.js');
+const connectTsk = require('./src/tasks/connect.js');
+const bldBrowserify = require('./src/tasks/build.browserify.js');
+const images = require('./src/tasks/images.js');
 
-const TASKS_PATH = path.resolve('src/tasks');
-const taskList = [];
+const tasks = [html, bldBrowserify, images, connectTsk];
 
-function loadTasks(tasks, gulpConfig) {
+function loadTasks(config) {
+  const taskList = [];
   tasks.forEach((task) => {
-    const opts = {
-      src: task.srcKey ? lGet(task.srcKey, gulpConfig) : '',
-      dist: gulpConfig.dist ? gulpConfig.dist : 'dist',
-      debug: gulpConfig.debug,
-      connect,
-    };
-    gulp.task(task.taskName, () => task.task(opts));
-    if (task.watch) {
-      gulp.watch(opts.src, [task.taskName]);
-    }
-    taskList.push(task.taskName);
+    const opts = Object.assign(config, { connect });
+    gulp.task(task.name, () => task.task(opts));
+    taskList.push(task.name);
   });
+  return taskList;
 }
 
-function loadBuild(gulpConfig) {
-  console.log(path.join(__dirname, TASKS_PATH));
-
-  getTasks(TASKS_PATH).then((tasks) => {
-    loadTasks(tasks, gulpConfig);
-    gulp.task('default', sequence(taskList));
-  });
+function startGulp(config) {
+  const taskList = loadTasks(config);
   gulp.task('default', sequence(taskList));
 }
 
-loadBuild();
-
-module.exports = loadBuild;
+module.exports = startGulp;
