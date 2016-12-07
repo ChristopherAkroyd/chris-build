@@ -12,6 +12,10 @@ function babelifyTransform(bundleDef) {
   bundleDef.transform('babelify', { presets: ['es2015', 'react'] });
 }
 
+function uglifyifyTransform(bundleDef) {
+  bundleDef.transform({ global: true }, 'uglifyify');
+}
+
 function sassifyTransform(bundleDef) {
   bundleDef.transform(sassify, {
     'auto-inject': true,
@@ -41,6 +45,11 @@ function buildBrowserify(opts) {
 
   babelifyTransform(bundle);
   sassifyTransform(bundle);
+  // if we're not debugging, uglify all code.
+  if (!opts.debug) {
+    uglifyifyTransform(bundle);
+  }
+
   bundle.on('error', (error) => {
     gUtil.log(error);
     this.emit('end');
