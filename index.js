@@ -20,6 +20,10 @@ function loadTasks(config) {
 }
 
 function startGulp(config) {
+  // Set production mode.
+  if (!config.debug) {
+    process.env.NODE_ENV = 'production';
+  }
   const taskList = loadTasks(config);
   gulp.task('default', sequence(taskList));
 }
