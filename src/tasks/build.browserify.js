@@ -24,9 +24,16 @@ function sassifyTransform(bundleDef) {
   });
 }
 
+function bundlingError(error) {
+  gUtil.log(gUtil.colors.red('Build Failed'));
+  gUtil.log(gUtil.colors.red(error));
+  this.emit('end');
+}
+
 function bundleTask(bundleDef, opts) {
   const bundle = bundleDef.bundle();
   gUtil.log('Building ...');
+  bundle.on('error', bundlingError);
   return bundle.pipe(source('bundle.js'))
     .pipe(gulp.dest(opts.dist))
     .pipe(opts.connect.reload());
@@ -50,10 +57,6 @@ function buildBrowserify(opts) {
     uglifyifyTransform(bundle);
   }
 
-  bundle.on('error', (error) => {
-    gUtil.log(error);
-    this.emit('end');
-  });
   bundle.on('update', () => bundleTask(bundle, opts));
   return bundleTask(bundle, opts);
 }
